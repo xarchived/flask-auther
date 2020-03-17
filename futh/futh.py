@@ -5,12 +5,13 @@ from os import urandom
 import bcrypt
 import jsonschema
 from flask import Flask
-from flask import abort
 from flask import g
 from flask import make_response
 from flask import request
 from patabase.postgres import Database
 from redisary import Redisary
+
+from futh.exceptions import *
 
 
 def hash_password(password: str) -> bytes:
@@ -89,21 +90,24 @@ class Futh(object):
                 # If there is no rule for the path we raise 404 error
                 route = (request.method, request.path)
                 if route not in self.rules:
-                    abort(404)
+                    raise RuleNotFound('The is not such a route')
 
                 # If there is a grant it required login and permission
                 g.grants = self.rules[route].get('grants')
                 if g.grants:
                     token = request.cookies.get('token')
                     if not token:
-                        abort(401)
+                        raise CookieNotFound('Token dose not exist')
+
+                    if token not in self.tokens:
+                        raise TokenExpired('Token dose not exist in the cache')
 
                     user_id, user_role = self.tokens[token].split(',')
                     g.user_id = int(user_id)
                     g.user_role = user_role
 
                     if g.user_role not in g.grants:
-                        abort(403)
+                        raise PermissionDenied('Dose not have permission')
 
                 # We check schema with "jsonschema" if a schema field exists
                 g.schema = self.rules[route].get('schema')
@@ -112,6 +116,9 @@ class Futh(object):
             else:
                 token = request.cookies.get('token')
                 if token:
+                    if token not in self.tokens:
+                        raise TokenExpired('Token dose not exist in the cache')
+
                     user_id, user_role = self.tokens[token].split(',')
                     g.user_id = int(user_id)
                     g.user_role = user_role
@@ -132,7 +139,7 @@ class Futh(object):
                 user_id, role = self.login(body['username'], body['password'])
 
                 if not user_id:
-                    raise ValueError('Wrong username or password')
+                    raise IncorrectUserPass('Wrong username or password')
 
                 token = b85encode(urandom(26))
                 self.tokens[token] = f'{user_id},{role}'
