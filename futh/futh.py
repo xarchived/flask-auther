@@ -2,21 +2,19 @@ from base64 import b85encode
 from importlib.resources import open_text
 from os import urandom
 
-from bcrypt import checkpw
-from bcrypt import gensalt
-from bcrypt import hashpw
+import bcrypt
+import jsonschema
 from flask import Flask
 from flask import abort
 from flask import g
 from flask import make_response
 from flask import request
-from jsonschema import validate
 from patabase.postgres import Database
 from redisary import Redisary
 
 
 def hash_password(password: str) -> bytes:
-    return hashpw(password.encode('utf-8'), gensalt())
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
 
 def input_validation(func):
@@ -110,7 +108,7 @@ class Futh(object):
                 # We check schema with "jsonschema" if a schema field exists
                 g.schema = self.rules[route].get('schema')
                 if g.schema:
-                    validate(request.get_json(), g.schema)
+                    jsonschema.validate(request.get_json(), g.schema)
             else:
                 token = request.cookies.get('token')
                 if token:
@@ -153,7 +151,7 @@ class Futh(object):
         if not users:
             return None, None
 
-        if checkpw(password.encode('utf-8'), bytes(user['password'])):
+        if bcrypt.checkpw(password.encode('utf-8'), bytes(user['password'])):
             return user['id'], user['role']
 
         return None, None
