@@ -88,13 +88,13 @@ class Futh(object):
         @app.before_request
         def before_request():
             if self.rules:
+                # If there is no rule for the path we raise 404 error
                 route = (request.method, request.path)
                 if route not in self.rules:
                     abort(404)
 
+                # If there is a grant it required login and permission
                 g.grants = self.rules[route].get('grants')
-                g.schema = self.rules[route].get('schema')
-
                 if g.grants:
                     token = request.cookies.get('token')
                     if not token:
@@ -107,6 +107,8 @@ class Futh(object):
                     if g.user_role not in g.grants:
                         abort(403)
 
+                # We check schema with "jsonschema" if a schema field exists
+                g.schema = self.rules[route].get('schema')
                 if g.schema:
                     validate(request.get_json(), g.schema)
             else:
