@@ -58,14 +58,14 @@ class Futh(object):
             host=app.config['POSTGRES_HOST'],
             user=app.config['POSTGRES_USER'],
             password=app.config['POSTGRES_PASS'],
-            database=app.config['AUTH_DATABASE']
+            database=app.config['POSTGRES_AUTH_DATABASE']
         )
 
         self.tokens = Redisary(
             host=app.config['REDIS_HOST'],
             port=app.config['REDIS_PORT'],
             db=app.config['REDIS_TOKEN_DB'],
-            expire=app.config['TOKEN_EXPIRE'])
+            expire=app.config['REDIS_TOKEN_EXPIRE'])
 
         self.rules = dict()
         if rules:
@@ -145,7 +145,7 @@ class Futh(object):
                 self.tokens[token] = f'{user_id},{role}'
 
                 res = make_response()
-                res.set_cookie('token', token, max_age=app.config['TOKEN_EXPIRE'], httponly=True)
+                res.set_cookie('token', token, max_age=app.config['REDIS_TOKEN_EXPIRE'], httponly=True)
                 return res
 
     def signup(self, username: str, password: str) -> None:
