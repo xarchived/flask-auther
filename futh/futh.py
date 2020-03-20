@@ -78,7 +78,7 @@ class Futh(object):
         self.enhance(app, routes)
 
     def init_database(self):
-        with open_text('futh.resources', 'create.sql') as f:
+        with open_text('futh.resources', 'schema.sql') as f:
             sql = f.read()
 
         self.db.perform(sql)
