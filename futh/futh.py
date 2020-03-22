@@ -54,11 +54,12 @@ class Futh(object):
     _rules: dict
 
     def __init__(self, app: Flask = None):
-        self.app = app
+        self._app = app
         if app is not None:
             self.init_app(app)
 
     def init_app(self, app: Flask, rules: list = None, routes: bool = False):
+        self._app = app
         self._db = Database(
             host=app.config['POSTGRES_HOST'],
             user=app.config['POSTGRES_USER'],
