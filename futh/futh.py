@@ -63,8 +63,7 @@ class Futh(object):
             host=app.config['POSTGRES_HOST'],
             user=app.config['POSTGRES_USER'],
             password=app.config['POSTGRES_PASS'],
-            database=app.config['POSTGRES_AUTH_DATABASE']
-        )
+            database=app.config['POSTGRES_AUTH_DATABASE'])
 
         self._tokens = Redisary(
             host=app.config['REDIS_HOST'],
