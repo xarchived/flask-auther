@@ -29,6 +29,7 @@ setup(
     packages=find_packages(),
     install_requires=['flask', 'psycopg2', 'patabase', 'redisary', 'bcrypt', 'jsonschema'],
     python_requires='>=3.6',
+    include_package_data=True,
     zip_safe=False,
     classifiers=[
         'Development Status :: 3 - Alpha',
