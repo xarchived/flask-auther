@@ -54,7 +54,6 @@ class Futh(object):
     _rules: dict
 
     def __init__(self, app: Flask = None):
-        self._app = app
         if app is not None:
             self.init_app(app)
 
