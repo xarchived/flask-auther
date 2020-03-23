@@ -4,10 +4,7 @@ from os import urandom
 
 import bcrypt
 import jsonschema
-from flask import Flask
-from flask import g
-from flask import make_response
-from flask import request
+from flask import Flask, g, make_response, request
 from patabase.postgres import Database
 from redisary import Redisary
 
