@@ -27,6 +27,7 @@ setup(
         'Issue tracker': f'https://github.com/{owner}/{name}/issues',
     },
     packages=find_packages(),
+    package_data={'': ['*.json']},
     install_requires=['flask', 'psycopg2', 'patabase', 'redisary', 'bcrypt', 'jsonschema'],
     python_requires='>=3.6',
     include_package_data=True,
