@@ -5,7 +5,7 @@ from os import urandom
 import bcrypt
 import jsonschema
 from flask import Flask, g, make_response, request
-from patabase.postgres import Database
+from patabase import Postgres
 from redisary import Redisary
 
 from futh.exceptions import *
@@ -46,7 +46,7 @@ def input_validation(func):
 
 class Futh(object):
     _tokens: Redisary
-    _db: Database
+    _db: Postgres
     _app: Flask
     _rules: dict
 
@@ -56,7 +56,7 @@ class Futh(object):
 
     def init_app(self, app: Flask, rules: list = None, routes: bool = False):
         self._app = app
-        self._db = Database(
+        self._db = Postgres(
             host=app.config['POSTGRES_HOST'],
             user=app.config['POSTGRES_USER'],
             password=app.config['POSTGRES_PASS'],
