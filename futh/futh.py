@@ -153,7 +153,7 @@ class Futh(object):
         users = self.get_users(username=username)
         user = next(users, dict())
 
-        if not users:
+        if not user:
             return None, None
 
         if bcrypt.checkpw(password.encode('utf-8'), bytes(user['password'])):
