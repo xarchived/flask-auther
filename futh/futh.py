@@ -50,9 +50,9 @@ class Futh(object):
     _app: Flask
     _rules: dict
 
-    def __init__(self, app: Flask = None):
+    def __init__(self, app: Flask = None, rules: list = None, routes: bool = False):
         if app is not None:
-            self.init_app(app)
+            self.init_app(app, rules, routes)
 
     def init_app(self, app: Flask, rules: list = None, routes: bool = False):
         self._app = app
