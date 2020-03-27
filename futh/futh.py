@@ -116,10 +116,7 @@ class Futh(object):
                     jsonschema.validate(request.get_json(), g.schema)
             else:
                 token = request.cookies.get('token')
-                if token:
-                    if token not in self._tokens:
-                        raise TokenExpired('Token dose not exist in the cache')
-
+                if token and token in self._tokens:
                     user_id, user_role = self._tokens[token].split(',')
                     g.user_id = int(user_id)
                     g.user_role = user_role
