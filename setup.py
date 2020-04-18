@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 name = 'flask-auther'
 owner = 'xurvan'
 
-with open(f'{name}/__init__.py') as f:
+with open('flask_auther/__init__.py') as f:
     version = re.search(r'([0-9]+(\.dev|\.|)){3}', f.read()).group(0)
 
 with open('README.md') as f:
