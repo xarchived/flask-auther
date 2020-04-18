@@ -8,7 +8,7 @@ from flask import Flask, g, make_response, request
 from patabase import Postgres
 from redisary import Redisary
 
-from futh.exceptions import *
+from flask_auther.exceptions import *
 
 
 def hash_password(password: str) -> bytes:
@@ -44,7 +44,7 @@ def input_validation(func):
     return wrapper
 
 
-class Futh(object):
+class Auther(object):
     _tokens: Redisary
     _db: Postgres
     _app: Flask
@@ -79,7 +79,7 @@ class Futh(object):
         self.enhance(app, routes)
 
     def init_database(self):
-        with open_text('futh.resources', 'schema.sql') as f:
+        with open_text('flask_auther.resources', 'schema.sql') as f:
             sql = f.read()
 
         self._db.perform(sql)

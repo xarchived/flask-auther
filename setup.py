@@ -2,7 +2,7 @@ import re
 
 from setuptools import find_packages, setup
 
-name = 'futh'
+name = 'flask-auther'
 owner = 'xurvan'
 
 with open(f'{name}/__init__.py') as f:
