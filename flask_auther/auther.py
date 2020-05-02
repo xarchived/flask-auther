@@ -1,10 +1,11 @@
 from base64 import b85encode
 from importlib.resources import open_text
 from os import urandom
+from typing import Union
 
 import bcrypt
 import jsonschema
-from flask import Flask, g, make_response, request
+from flask import Flask, g, make_response, request, Blueprint
 from patabase import Postgres
 from redisary import Redisary
 
@@ -47,14 +48,14 @@ def input_validation(func):
 class Auther(object):
     _tokens: Redisary
     _db: Postgres
-    _app: Flask
+    _app: Union[Flask, Blueprint]
     _rules: dict
 
-    def __init__(self, app: Flask = None, rules: list = None, routes: bool = False):
+    def __init__(self, app: Union[Flask, Blueprint] = None, rules: list = None, routes: bool = False):
         if app is not None:
             self.init_app(app, rules, routes)
 
-    def init_app(self, app: Flask, rules: list = None, routes: bool = False):
+    def init_app(self, app: Flask, rules: list = None, routes: bool = False) -> None:
         self._app = app
         self._db = Postgres(
             host=app.config['POSTGRES_HOST'],
@@ -78,13 +79,13 @@ class Auther(object):
 
         self.enhance(app, routes)
 
-    def init_database(self):
+    def init_database(self) -> None:
         with open_text('flask_auther.resources', 'schema.sql') as f:
             sql = f.read()
 
         self._db.perform(sql)
 
-    def enhance(self, app: Flask, routes: bool = False) -> None:
+    def enhance(self, app: Union[Flask, Blueprint], routes: bool = False) -> None:
         @app.before_request
         def before_request():
             if self._rules:
