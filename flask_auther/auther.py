@@ -6,7 +6,7 @@ from typing import Union
 import bcrypt
 import jsonschema
 from flask import Flask, g, make_response, request, Blueprint
-from patabase import Postgres
+from qedgal import Qedgal
 from redisary import Redisary
 
 from flask_auther.exceptions import *
@@ -47,7 +47,7 @@ def input_validation(func):
 
 class Auther(object):
     _tokens: Redisary
-    _db: Postgres
+    _db: Qedgal
     _app: Union[Flask, Blueprint]
     _rules: dict
 
@@ -57,7 +57,7 @@ class Auther(object):
 
     def init_app(self, app: Flask, rules: list = None, routes: bool = False) -> None:
         self._app = app
-        self._db = Postgres(
+        self._db = Qedgal(
             host=app.config['POSTGRES_HOST'],
             user=app.config['POSTGRES_USER'],
             password=app.config['POSTGRES_PASS'],
@@ -163,13 +163,8 @@ class Auther(object):
         return None, None
 
     @input_validation
-    def add_user(self, username: str, password: str, role: str = None) -> None:
-        sql = '''
-            insert into users (username, password, role)
-            values (%s, %s, %s)
-        '''
-
-        self._db.perform(sql, username, password, role)
+    def add_user(self, username: str, password: str, role: str = None) -> int:
+        return self._db.add('users', username=username, password=password, role=role)
 
     @input_validation
     def del_user(self, user_id: int = None, username: str = None) -> None:
@@ -184,15 +179,7 @@ class Auther(object):
 
     @input_validation
     def edit_user(self, user_id: int, username: str, password: str, role: str = None) -> None:
-        sql = '''
-            update users
-            set username = coalesce(%s, username),
-                password = coalesce(%s, password),
-                role = coalesce(%s, role)
-            where id = %s;
-        '''
-
-        self._db.perform(sql, username, password, role, user_id)
+        self._db.edit('users', pk=user_id, username=username, password=password, role=role)
 
     @input_validation
     def get_users(self, user_id: int = None, username: str = None, password: str = None, role: str = None) -> list:

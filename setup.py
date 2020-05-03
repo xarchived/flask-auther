@@ -27,7 +27,7 @@ setup(
     },
     packages=find_packages(),
     package_data={'': ['*.sql']},
-    install_requires=['flask', 'psycopg2-binary', 'patabase', 'redisary', 'bcrypt', 'jsonschema'],
+    install_requires=['flask', 'psycopg2-binary', 'qedgal', 'redisary', 'bcrypt', 'jsonschema'],
     python_requires='>=3.6',
     zip_safe=False,
     classifiers=[
