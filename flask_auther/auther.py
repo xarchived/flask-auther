@@ -65,7 +65,11 @@ class Auther(object):
                     'grants': rule.get('grants'),
                     'schema': rule.get('schema')}
 
-        self.enhance(app, routes)
+        ctx = _app_ctx_stack.top
+        if ctx is not None:
+            if not hasattr(ctx, 'auther_enhanced'):
+                ctx.auther_enhanced = True
+                self.enhance(app, routes)
 
     @property
     def _db(self) -> Qedgal:
