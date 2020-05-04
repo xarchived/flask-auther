@@ -5,7 +5,8 @@ from typing import Union
 
 import bcrypt
 import jsonschema
-from flask import Flask, g, make_response, request, Blueprint
+# noinspection PyProtectedMember
+from flask import Flask, g, make_response, request, Blueprint, _app_ctx_stack, current_app
 from qedgal import Qedgal
 from redisary import Redisary
 
@@ -55,29 +56,40 @@ class Auther(object):
         if app is not None:
             self.init_app(app, rules, routes)
 
-    def init_app(self, app: Flask, rules: list = None, routes: bool = False) -> None:
+    def init_app(self, app: Union[Flask, Blueprint], rules: list = None, routes: bool = False) -> None:
         self._app = app
-        self._db = Qedgal(
-            host=app.config['POSTGRES_HOST'],
-            user=app.config['POSTGRES_USER'],
-            password=app.config['POSTGRES_PASS'],
-            database=app.config['POSTGRES_AUTH_DATABASE'])
-
-        self._tokens = Redisary(
-            host=app.config['REDIS_HOST'],
-            port=app.config['REDIS_PORT'],
-            db=app.config['REDIS_TOKEN_DB'],
-            expire=app.config['REDIS_TOKEN_EXPIRE'])
-
         self._rules = dict()
         if rules:
             for rule in rules:
                 self._rules[rule['method'], rule['route']] = {
                     'grants': rule.get('grants'),
-                    'schema': rule.get('schema')
-                }
+                    'schema': rule.get('schema')}
 
         self.enhance(app, routes)
+
+    @property
+    def _db(self) -> Qedgal:
+        ctx = _app_ctx_stack.top
+        if ctx is not None:
+            if not hasattr(ctx, 'qedgal_auth_connection'):
+                ctx.qedgal_auth_connection = Qedgal(
+                    host=current_app.config['POSTGRES_HOST'],
+                    user=current_app.config['POSTGRES_USER'],
+                    password=current_app.config['POSTGRES_PASS'],
+                    database=current_app.config['POSTGRES_AUTH_DATABASE'])
+            return ctx.qedgal_auth_connection
+
+    @property
+    def _tokens(self) -> Redisary:
+        ctx = _app_ctx_stack.top
+        if ctx is not None:
+            if not hasattr(ctx, 'redisary_token_connection'):
+                ctx.redisary_token_connection = Redisary(
+                    host=current_app.config['REDIS_HOST'],
+                    port=current_app.config['REDIS_PORT'],
+                    db=current_app.config['REDIS_TOKEN_DB'],
+                    expire=current_app.config['REDIS_TOKEN_EXPIRE'])
+            return ctx.redisary_token_connection
 
     def init_database(self) -> None:
         with open_text('flask_auther.resources', 'schema.sql') as f:
@@ -144,7 +156,7 @@ class Auther(object):
                 self._tokens[token] = f'{user_id},{role}'
 
                 res = make_response()
-                res.set_cookie('token', token, max_age=app.config['REDIS_TOKEN_EXPIRE'], httponly=True)
+                res.set_cookie('token', token, max_age=current_app.config['REDIS_TOKEN_EXPIRE'], httponly=True)
                 return res
 
     def signup(self, username: str, password: str) -> None:
