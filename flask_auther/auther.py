@@ -91,11 +91,18 @@ class Auther(object):
                     expire=current_app.config['REDIS_TOKEN_EXPIRE'])
             return ctx.redisary_token_connection
 
-    def init_database(self) -> None:
+    @staticmethod
+    def init_database(host: str, username: str, password: str, database: str) -> None:
+        connection = Qedgal(
+            host=host,
+            user=username,
+            password=password,
+            database=database)
+
         with open_text('flask_auther.resources', 'schema.sql') as f:
             sql = f.read()
 
-        self._db.perform(sql)
+        connection.perform(sql)
 
     def enhance(self, app: Union[Flask, Blueprint], routes: bool = False) -> None:
         @app.before_request
