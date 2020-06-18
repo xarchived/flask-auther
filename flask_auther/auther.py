@@ -7,7 +7,7 @@ from typing import Union
 import bcrypt
 import jsonschema
 # noinspection PyProtectedMember
-from flask import Flask, g, make_response, request, Blueprint, _app_ctx_stack, current_app
+from flask import Flask, g, make_response, request, Blueprint, _app_ctx_stack, current_app, redirect
 from qedgal import Qedgal
 from redisary import Redisary
 
@@ -186,6 +186,11 @@ class Auther(object):
                     samesite=self.same_site)
                 return res
 
+            @app.route('/auth/logout')
+            def logout():
+                self.logout()
+                return redirect('/')
+
     def signup(self, username: str, password: str) -> None:
         self.add_user(username, password)
 
@@ -200,6 +205,11 @@ class Auther(object):
             return user['id'], user['role']
 
         return None, None
+
+    def logout(self) -> None:
+        token = request.cookies.get('token')
+        if token in self._tokens:
+            del self._tokens[token]
 
     @input_validation
     def add_user(self, username: str, password: str, role: str = None) -> int:
