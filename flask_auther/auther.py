@@ -147,7 +147,7 @@ class Auther(object):
                     user_id, user_role = self._tokens[token].split(',')
                     g.user_id = int(user_id)
                     g.user_role = user_role
-                else:
+                elif request.path not in ('auth/login', 'auth/signup', '/'):
                     raise CookieNotFound('Token dose not exist')
 
         if routes:
