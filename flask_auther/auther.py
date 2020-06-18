@@ -52,7 +52,11 @@ class Auther(object):
     _app: Union[Flask, Blueprint]
     _rules: dict
 
-    def __init__(self, app: Union[Flask, Blueprint] = None, rules: list = None, routes: bool = False):
+    def __init__(self, app: Union[Flask, Blueprint] = None, rules: list = None, routes: bool = False,
+                 secure: bool = False, same_site: str = None):
+        self.secure = secure
+        self.same_site = same_site
+
         if app is not None:
             self.init_app(app, rules, routes)
 
@@ -163,7 +167,13 @@ class Auther(object):
                 self._tokens[token] = f'{user_id},{role}'
 
                 res = make_response()
-                res.set_cookie('token', token, max_age=current_app.config['REDIS_TOKEN_EXPIRE'], httponly=True)
+                res.set_cookie(
+                    'token',
+                    token,
+                    max_age=current_app.config['REDIS_TOKEN_EXPIRE'],
+                    httponly=True,
+                    secure=self.secure,
+                    samesite=self.same_site)
                 return res
 
     def signup(self, username: str, password: str) -> None:
