@@ -43,7 +43,7 @@ def input_validation(func):
         if 'user_id' in kwargs:
             kwargs['user_id'] = int(kwargs['user_id'])
 
-        return func(**kwargs)
+        return func(self, **kwargs)
 
     return wrapper
 
