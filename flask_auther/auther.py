@@ -14,11 +14,10 @@ from redisary import Redisary
 from flask_auther.exceptions import *
 
 
-def hash_password(password: str) -> bytes:
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
-
 def input_validation(func):
+    def hash_password(password: str) -> bytes:
+        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
     def wrapper(*args, **kwargs):
         assert isinstance(args[0], Auther)
         self = args[0]
