@@ -144,6 +144,8 @@ class Auther(object):
                     user_id, user_role = self._tokens[token].split(',')
                     g.user_id = int(user_id)
                     g.user_role = user_role
+                else:
+                    raise CookieNotFound('Token dose not exist')
 
         if routes:
             # TODO: add CAPTCHA
