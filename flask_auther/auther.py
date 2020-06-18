@@ -36,7 +36,7 @@ def input_validation(func):
             kwargs['password'] = hash_password(kwargs['password'])
 
         if 'role' in kwargs:
-            if not kwargs['role'].isalpha():
+            if not re.match(r'^([a-zA-Z_]+)$', kwargs['role']):
                 raise ValueError('Invalid role')
 
             kwargs['role'] = kwargs['role'].lower()
