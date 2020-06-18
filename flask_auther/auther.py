@@ -1,3 +1,4 @@
+import re
 from base64 import b85encode
 from importlib.resources import open_text
 from os import urandom
@@ -18,13 +19,14 @@ def hash_password(password: str) -> bytes:
 
 
 def input_validation(func):
-    def wrapper(*args, **kwargs):
+    def wrapper(self, *args, **kwargs):
+        assert isinstance(self, Auther)
         names = func.__code__.co_varnames
         for kw, arg in zip(names, args):
             kwargs[kw] = arg
 
         if 'username' in kwargs:
-            if not kwargs['username'].isalnum():
+            if not re.match(self.username_pattern, kwargs['username']):
                 raise ValueError('Invalid username')
 
             kwargs['username'] = kwargs['username'].lower()
@@ -53,7 +55,8 @@ class Auther(object):
     _rules: dict
 
     def __init__(self, app: Union[Flask, Blueprint] = None, rules: list = None, routes: bool = False,
-                 secure: bool = False, same_site: str = None):
+                 secure: bool = False, same_site: str = None, username_pattern: str = r'^([a-zA-Z0-9_]{3,32})$'):
+        self.username_pattern = username_pattern
         self.secure = secure
         self.same_site = same_site
 
