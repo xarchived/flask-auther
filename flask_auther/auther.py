@@ -19,8 +19,10 @@ def hash_password(password: str) -> bytes:
 
 
 def input_validation(func):
-    def wrapper(self, *args, **kwargs):
-        assert isinstance(self, Auther)
+    def wrapper(*args, **kwargs):
+        assert isinstance(args[0], Auther)
+        self = args[0]
+
         names = func.__code__.co_varnames
         for kw, arg in zip(names, args):
             kwargs[kw] = arg
@@ -43,7 +45,7 @@ def input_validation(func):
         if 'user_id' in kwargs:
             kwargs['user_id'] = int(kwargs['user_id'])
 
-        return func(self, **kwargs)
+        return func(**kwargs)
 
     return wrapper
 
