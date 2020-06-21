@@ -16,3 +16,7 @@ class PermissionDenied(Exception):
 
 class IncorrectUserPass(Exception):
     pass
+
+
+class DuplicateUsername(Exception):
+    pass

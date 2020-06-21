@@ -6,6 +6,7 @@ from typing import Union
 
 import bcrypt
 import jsonschema
+import psycopg2
 # noinspection PyProtectedMember
 from flask import Flask, g, make_response, request, Blueprint, _app_ctx_stack, current_app, redirect
 from qedgal import Qedgal
@@ -192,7 +193,12 @@ class Auther(object):
                 return redirect('/')
 
     def signup(self, username: str, password: str) -> None:
-        self.add_user(username, password)
+        try:
+            self.add_user(username, password)
+        except psycopg2.errors.UniqueViolation as e:
+            if 'username' in str(e):
+                raise DuplicateUsername('Username is not available')
+            raise e
 
     def login(self, username: str, password: str) -> tuple:
         users = self.get_users(username=username)
