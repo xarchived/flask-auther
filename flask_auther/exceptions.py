@@ -20,3 +20,7 @@ class IncorrectUserPass(Exception):
 
 class DuplicateUsername(Exception):
     pass
+
+
+class InvalidInput(Exception):
+    pass

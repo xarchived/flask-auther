@@ -29,7 +29,7 @@ def input_validation(func):
 
         if 'username' in kwargs:
             if not re.match(self.username_pattern, kwargs['username']):
-                raise ValueError('Invalid username')
+                raise InvalidInput('Invalid username')
 
             kwargs['username'] = kwargs['username'].lower()
 
@@ -38,7 +38,7 @@ def input_validation(func):
 
         if 'role' in kwargs:
             if not re.match(r'^([a-zA-Z_]+)$', kwargs['role']):
-                raise ValueError('Invalid role')
+                raise InvalidInput('Invalid role')
 
             kwargs['role'] = kwargs['role'].lower()
 
