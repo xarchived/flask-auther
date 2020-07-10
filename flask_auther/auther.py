@@ -1,3 +1,4 @@
+import json
 import re
 from base64 import b85encode
 from importlib.resources import open_text
@@ -114,6 +115,9 @@ class Auther(object):
         connection.perform(sql)
 
     def enhance(self, app: Union[Flask, Blueprint], routes: bool = False) -> None:
+        def get_body():
+            return request.get_json() or json.loads(request.get_data())
+
         @app.before_request
         def before_request():
             if self._rules:
@@ -160,7 +164,7 @@ class Auther(object):
             # TODO: add CAPTCHA
             @app.route('/auth/signup', methods=['POST'])
             def signup():
-                body = request.get_json()
+                body = get_body()
 
                 self.signup(body['username'], body['password'])
 
@@ -168,7 +172,7 @@ class Auther(object):
 
             @app.route('/auth/login', methods=['POST'])
             def login():
-                body = request.get_json()
+                body = get_body()
                 user_id, role = self.login(body['username'], body['password'])
 
                 if not user_id:
