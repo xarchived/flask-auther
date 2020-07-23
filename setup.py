@@ -26,8 +26,7 @@ setup(
         'Issue tracker': f'https://github.com/{owner}/{name}/issues',
     },
     packages=find_packages(),
-    package_data={'': ['*.sql']},
-    install_requires=['flask', 'psycopg2-binary', 'qedgal', 'redisary', 'bcrypt', 'jsonschema'],
+    install_requires=['flask', 'auther', 'redisary', 'jsonschema'],
     python_requires='>=3.7',
     zip_safe=False,
     classifiers=[

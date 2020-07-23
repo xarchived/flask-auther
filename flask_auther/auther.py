@@ -1,59 +1,20 @@
 import json
-import re
 from base64 import b85encode
-from importlib.resources import open_text
 from os import urandom
 from typing import Union
 
-import bcrypt
 import jsonschema
-import psycopg2
+from auther import Auther as _Auther
 # noinspection PyProtectedMember
 from flask import Flask, g, make_response, request, Blueprint, _app_ctx_stack, current_app, redirect
-from qedgal import Qedgal
 from redisary import Redisary
 
 from flask_auther.exceptions import *
 
 
-def input_validation(func):
-    def hash_password(password: str) -> bytes:
-        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
-    def wrapper(*args, **kwargs):
-        assert isinstance(args[0], Auther)
-        self = args[0]
-
-        names = func.__code__.co_varnames
-        for kw, arg in zip(names, args):
-            kwargs[kw] = arg
-
-        if 'username' in kwargs:
-            if not re.match(self.username_pattern, kwargs['username']):
-                raise InvalidInput('Invalid username')
-
-            kwargs['username'] = kwargs['username'].lower()
-
-        if 'password' in kwargs:
-            kwargs['password'] = hash_password(kwargs['password'])
-
-        if 'role' in kwargs:
-            if not re.match(r'^([a-zA-Z_]+)$', kwargs['role']):
-                raise InvalidInput('Invalid role')
-
-            kwargs['role'] = kwargs['role'].lower()
-
-        if 'user_id' in kwargs:
-            kwargs['user_id'] = int(kwargs['user_id'])
-
-        return func(**kwargs)
-
-    return wrapper
-
-
 class Auther(object):
     _tokens: Redisary
-    _db: Qedgal
+    _auther: _Auther
     _app: Union[Flask, Blueprint]
     _rules: dict
 
@@ -78,16 +39,16 @@ class Auther(object):
         self.enhance(app, routes)
 
     @property
-    def _db(self) -> Qedgal:
+    def _auther(self) -> _Auther:
         ctx = _app_ctx_stack.top
         if ctx is not None:
-            if not hasattr(ctx, 'qedgal_auth_connection'):
-                ctx.qedgal_auth_connection = Qedgal(
+            if not hasattr(ctx, '_auther'):
+                ctx._auther = _Auther(
                     host=current_app.config['POSTGRES_HOST'],
                     user=current_app.config['POSTGRES_USER'],
                     password=current_app.config['POSTGRES_PASS'],
                     database=current_app.config['POSTGRES_AUTH_DATABASE'])
-            return ctx.qedgal_auth_connection
+            return ctx._auther
 
     @property
     def _tokens(self) -> Redisary:
@@ -100,19 +61,6 @@ class Auther(object):
                     db=current_app.config['REDIS_TOKEN_DB'],
                     expire=current_app.config['REDIS_TOKEN_EXPIRE'])
             return ctx.redisary_token_connection
-
-    @staticmethod
-    def init_database(host: str, username: str, password: str, database: str) -> None:
-        connection = Qedgal(
-            host=host,
-            user=username,
-            password=password,
-            database=database)
-
-        with open_text('flask_auther.resources', 'schema.sql') as f:
-            sql = f.read()
-
-        connection.perform(sql)
 
     def enhance(self, app: Union[Flask, Blueprint], routes: bool = False) -> None:
         def get_body():
@@ -166,20 +114,20 @@ class Auther(object):
             def signup():
                 body = get_body()
 
-                self.signup(body['username'], body['password'])
+                self._auther.signup(body['username'], body['password'])
 
                 return '', 201
 
             @app.route('/auth/login', methods=['POST'])
             def login():
                 body = get_body()
-                user_id, role = self.login(body['username'], body['password'])
+                user_id, roles = self._auther.login(body['username'], body['password'])
 
                 if not user_id:
                     raise IncorrectUserPass('Wrong username or password')
 
                 token = b85encode(urandom(26))
-                self._tokens[token] = f'{user_id},{role}'
+                self._tokens[token] = f'{user_id},{"".join(roles)}'
 
                 res = make_response()
                 res.set_cookie(
@@ -196,69 +144,7 @@ class Auther(object):
                 self.logout()
                 return redirect('/')
 
-    def signup(self, username: str, password: str) -> None:
-        try:
-            self.add_user(username, password)
-        except psycopg2.errors.UniqueViolation as e:
-            if 'username' in str(e):
-                raise DuplicateUsername('Username is not available')
-            raise e
-
-    def login(self, username: str, password: str) -> tuple:
-        users = self.get_users(username=username)
-        user = next(users, dict())
-
-        if not user:
-            return None, None
-
-        if bcrypt.checkpw(password.encode('utf-8'), bytes(user['password'])):
-            return user['id'], user['role']
-
-        return None, None
-
     def logout(self) -> None:
         token = request.cookies.get('token')
         if token in self._tokens:
             del self._tokens[token]
-
-    @input_validation
-    def add_user(self, username: str, password: str, role: str = None) -> int:
-        return self._db.add('users', username=username, password=password, role=role)
-
-    @input_validation
-    def del_user(self, user_id: int = None, username: str = None) -> None:
-        sql = '''
-            update users
-            set delete_date = now()
-            where id = %s
-               or username = %s
-        '''
-
-        self._db.perform(sql, user_id, username)
-
-    @input_validation
-    def edit_user(self, user_id: int, username: str, password: str, role: str = None) -> None:
-        self._db.edit('users', pk=user_id, username=username, password=password, role=role)
-
-    @input_validation
-    def get_users(self, user_id: int = None, username: str = None, password: str = None, role: str = None) -> list:
-        sql = '''
-            select id,
-                   username,
-                   password,
-                   role,
-                   insert_date
-            from users
-            where delete_date is null
-        '''
-
-        if user_id:
-            sql += f" and id = '{user_id}'"
-        if username:
-            sql += f" and username = '{username}'"
-        if password:
-            sql += f" and password = '{password}'"
-        if role:
-            sql += f" and role = '{role}'"
-
-        return self._db.select(sql)
