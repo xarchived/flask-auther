@@ -19,7 +19,3 @@ class PermissionDenied(Exception):
 
 class IncorrectUserPass(Exception):
     pass
-
-
-class InvalidInput(Exception):
-    pass

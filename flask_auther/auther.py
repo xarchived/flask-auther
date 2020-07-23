@@ -121,9 +121,9 @@ class Auther(object):
             @app.route('/auth/login', methods=['POST'])
             def login():
                 body = get_body()
-                user_id, roles = self._auther.login(body['username'], body['password'])
-
-                if not user_id:
+                try:
+                    user_id, roles = self._auther.login(body['username'], body['password'])
+                except (WrongPassword, UsernameNotFound):
                     raise IncorrectUserPass('Wrong username or password')
 
                 token = b85encode(urandom(26))
