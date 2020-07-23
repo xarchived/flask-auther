@@ -148,3 +148,36 @@ class Auther(object):
         token = request.cookies.get('token')
         if token in self._tokens:
             del self._tokens[token]
+
+    def signup(self, username: str, password: str) -> None:
+        self._auther.signup(username, password)
+
+    def login(self, username: str, password: str) -> tuple:
+        return self._auther.login(username, password)
+
+    def add_user(self, username: str, password: str) -> int:
+        return self._auther.add_user(username, password)
+
+    def add_role(self, title: str) -> int:
+        return self._auther.add_role(title)
+
+    def add_user_role(self, user_id: int, role_id: int) -> int:
+        return self._auther.add_user_role(user_id, role_id)
+
+    def del_user(self, user_id: int = None, username: str = None) -> None:
+        self._auther.del_user(user_id, username)
+
+    def del_role(self, user_id: int = None, title: str = None) -> None:
+        self._auther.del_role(user_id, title)
+
+    def del_user_role(self, user_id: int = None, role_id: int = None) -> None:
+        self._auther.del_user_role(user_id, role_id)
+
+    def edit_user(self, user_id: int, username: str, password: str) -> None:
+        self._auther.edit_user(user_id, username, password)
+
+    def get_users(self, user_id: int = None, username: str = None, password: str = None, role: str = None) -> list:
+        return self._auther.get_users(user_id, username, password, role)
+
+    def get_roles(self):
+        self._auther.get_roles()
