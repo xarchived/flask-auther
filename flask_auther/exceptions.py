@@ -1,3 +1,6 @@
+from auther.exceptions import *
+
+
 class RuleNotFound(Exception):
     pass
 
@@ -15,10 +18,6 @@ class PermissionDenied(Exception):
 
 
 class IncorrectUserPass(Exception):
-    pass
-
-
-class DuplicateUsername(Exception):
     pass
 
 
