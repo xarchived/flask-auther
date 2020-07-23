@@ -179,5 +179,5 @@ class Auther(object):
     def get_users(self, user_id: int = None, username: str = None, password: str = None, role: str = None) -> list:
         return self._auther.get_users(user_id, username, password, role)
 
-    def get_roles(self):
-        self._auther.get_roles()
+    def get_roles(self, title: str = None) -> list:
+        return self._auther.get_roles(title)
