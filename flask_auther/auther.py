@@ -20,10 +20,26 @@ class Auther(object):
 
     def __init__(self, app: Union[Flask, Blueprint] = None, rules: list = None, routes: bool = False,
                  secure: bool = False, same_site: str = None, username_pattern: str = r'^([a-zA-Z0-9_]{3,32})$'):
+
+        # map methods
+        self.get_roles = self._auther.get_roles
+        self.signup = self._auther.signup
+        self.login = self._auther.login
+        self.add_user = self._auther.add_user
+        self.add_role = self._auther.add_role
+        self.add_user_role = self._auther.add_user_role
+        self.del_user = self._auther.del_user
+        self.del_role = self._auther.del_role
+        self.del_user_role = self._auther.del_user_role
+        self.edit_user = self._auther.edit_user
+        self.get_users = self._auther.get_users
+
+        # basic attribute
         self.username_pattern = username_pattern
         self.secure = secure
         self.same_site = same_site
 
+        # app initialization
         if app is not None:
             self.init_app(app, rules, routes)
 
@@ -148,36 +164,3 @@ class Auther(object):
         token = request.cookies.get('token')
         if token in self._tokens:
             del self._tokens[token]
-
-    def signup(self, username: str, password: str) -> None:
-        self._auther.signup(username, password)
-
-    def login(self, username: str, password: str) -> tuple:
-        return self._auther.login(username, password)
-
-    def add_user(self, username: str, password: str) -> int:
-        return self._auther.add_user(username, password)
-
-    def add_role(self, title: str) -> int:
-        return self._auther.add_role(title)
-
-    def add_user_role(self, user_id: int, role_id: int) -> int:
-        return self._auther.add_user_role(user_id, role_id)
-
-    def del_user(self, user_id: int = None, username: str = None) -> None:
-        self._auther.del_user(user_id, username)
-
-    def del_role(self, user_id: int = None, title: str = None) -> None:
-        self._auther.del_role(user_id, title)
-
-    def del_user_role(self, user_id: int = None, role_id: int = None) -> None:
-        self._auther.del_user_role(user_id, role_id)
-
-    def edit_user(self, user_id: int, username: str, password: str) -> None:
-        self._auther.edit_user(user_id, username, password)
-
-    def get_users(self, user_id: int = None, username: str = None, password: str = None, role: str = None) -> list:
-        return self._auther.get_users(user_id, username, password, role)
-
-    def get_roles(self):
-        self._auther.get_roles()
